@@ -1,9 +1,10 @@
-# Analysis scripts for polymer simulations of chromosome organisation. 
+# Analysis scripts for polymer simulations of chromosome organisation.
 
-## Cite 
+## Cite
+
 Amith Z. Abdulla, Marco Di Stefano, Cristian Micheletti and Daniel Jost, Topological constraints...
 
-This repository contains a collection of scripts for analysing 3D polymer simulation trajectories of chromosome territories. The pipeline quantifies chromosome intermingling through alpha-shape analysis, computes contact maps with trans-contact ratios (TR), and generates violin-plot visualisations. The scripts are designed to run on HPC clusters (SLURM) and follow a numbered, sequential workflow.
+This repository contains a collection of scripts for analysing 3D polymer simulation trajectories of chromosome territories. The pipeline quantifies chromosome intermingling through mixing entropy, alpha-shape analysis, computes contact maps with trans-contact ratios (TR), and generates violin-plot visualisations. The scripts are designed to run on HPC clusters (SLURM) and follow a numbered, sequential workflow.
 
 ---
 
@@ -14,6 +15,7 @@ This repository contains a collection of scripts for analysing 3D polymer simula
 3. [Input Data Format](#input-data-format)
 4. [Pipeline Overview](#pipeline-overview)
 5. [Script Reference](#script-reference)
+   - [Mixing Entropy — Local Flory-Huggins Mixing Entropy](#mixing-entropy--local-flory-huggins-mixing-entropy)
    - [Step 1 — Alpha-Shape Volume and Particle Counting](#step-1--alpha-shape-volume-and-particle-counting)
    - [Step 2a — Alpha-Shape Visualisation](#step-2a--alpha-shape-visualisation)
    - [Step 2b — Contact Map and Trans-Contact Ratio (Per-Replica)](#step-2b--contact-map-and-trans-contact-ratio-per-replica)
@@ -29,8 +31,9 @@ This repository contains a collection of scripts for analysing 3D polymer simula
 
 ## Overview
 
-The simulation system consists of **three polymer chains** (A, B, C), each comprising **2,000 beads**, confined inside a sphere of radius 10 lattice units. The analysis pipeline addresses two main questions:
+The simulation system consists of **three polymer chains** (A, B, C), each comprising **2,000 beads**, confined inside a sphere of radius 10 lattice units. The analysis pipeline addresses three main questions:
 
+- **Degree of mixing**: How well-mixed are the three polymer species locally? (Flory-Huggins mixing entropy, `T3mixing_Entropy.py`.)
 - **Territorial organisation**: How much volume does each chain occupy, and how many beads of one chain reside inside the territory of another? (Alpha-shape analysis, Steps 1–2a.)
 - **Contact patterns**: What is the balance between cis-chromosome and trans-chromosome contacts, and how does it evolve over time? (Contact-map analysis, Steps 2b–4.)
 
@@ -40,17 +43,23 @@ The simulation system consists of **three polymer chains** (A, B, C), each compr
 
 | Tool | Version / Notes |
 |------|----------------|
+| **Python 3** | With `numpy`, `scipy` (for mixing entropy and knot-state utility). A `vtkReader` module is also required for reading simulation output (see note below). |
 | **R** | >= 4.0, with packages: `alphashape3d`, `rgl`, `ggplot2`, `dplyr`, `ggpubr`, `ggrepel`, `scales`, `RColorBrewer` |
 | **GCC** | Any standard C compiler (for building the contact-map programs) |
-| **Python 3** | With `numpy` (only for the knot-state utility) |
 | **SLURM** | Scripts include `#SBATCH` directives; adapt for other schedulers as needed |
 | **Bash** | >= 4.0 |
+
+> **Note on `vtkReader`**: `T3mixing_Entropy.py` imports a `vtkReader` module to read simulation trajectory data. This module is not included in this repository and must be provided separately. It should expose a class whose iterator yields objects with a `polyPos` attribute containing an (N, 3) NumPy array of monomer coordinates.
 
 ### Hardware
 
 Most analysis steps are single-threaded. Memory requirements are moderate (the SLURM headers request 15 GB), driven primarily by the contact-matrix allocation inside the C programs.
 
 ## Input Data Format
+
+### Simulation Output (for mixing entropy)
+
+VTK-format trajectory files, read via the `vtkReader` module. Each frame must provide the 3D coordinates of all monomers for each of the three polymer chains. The chains are identified by name (e.g. `"poly0"`, `"poly1"`, `"poly2"`) and loaded separately.
 
 ### Simulation Snapshots (for alpha-shape analysis)
 
@@ -79,6 +88,11 @@ Plain-text files named `time_<T>_pos.res` (or `.read_data`), each containing **N
 ## Pipeline Overview
 
 ```
+Mixing Entropy
+T3mixing_Entropy.py
+  (normalised Flory-Huggins
+   mixing entropy per monomer)
+
 Step 1                    Step 2a
 01_*.sh/cmd  ──>  01_*.R  ──>  02_chain_alphaShape_plots.cmd  ──>  02_chain_alphaShape_plots.R
   (extract             (compute        (aggregate results              (violin plots of
@@ -94,6 +108,64 @@ Step 2b / 3a                           Step 3b                 Step 4
 ---
 
 ## Script Reference
+
+### Mixing Entropy — Local Flory-Huggins Mixing Entropy
+
+#### `T3mixing_Entropy.py`
+
+**Purpose**: Computes the normalised Flory-Huggins mixing entropy for each monomer in a three-chain polymer system. For every monomer, a local neighbourhood is defined as all monomers within a given radius. The local volume fractions of the three species are used to compute a per-monomer mixing entropy, which is then normalised by the maximum possible entropy for three species (ln 3). The result quantifies how well-mixed the chains are locally: a value of 1.0 indicates perfect mixing, while values near 0 indicate segregation.
+
+**Language**: Python 3
+
+**Dependencies**: `numpy`, `scipy` (`scipy.spatial.cKDTree`), `vtkReader` (external module, not included)
+
+**Command-line arguments**:
+
+| Argument | Position | Description |
+|----------|----------|-------------|
+| outputDir | `$1` | Path to the directory containing the simulation output files |
+| chrom1 | `$2` | Identifier for the first polymer chain (e.g. `"poly0"`) |
+| chrom2 | `$3` | Identifier for the second polymer chain (e.g. `"poly1"`) |
+| chrom3 | `$4` | Identifier for the third polymer chain (e.g. `"poly2"`) |
+| initFrame | `$5` | Frame index to analyse (integer) |
+| radius | `$6` | Radius of the local neighbourhood for entropy calculation (float, in simulation units) |
+
+**Algorithm**:
+
+1. Reads the 3D coordinates of all three chains for the specified frame using `vtkReader`.
+2. Concatenates all monomer positions and assigns a species label (0, 1, or 2) to each.
+3. Builds a KD-tree over all monomer positions.
+4. For each monomer with more than 2 neighbours within the specified radius:
+   - Computes the local volume fraction φ_i of each species.
+   - Computes the local mixing entropy: −Σ_i (φ_i ln φ_i).
+5. Normalises each per-monomer entropy by ln(3) to obtain values in the range [0, 1].
+
+**Key parameters**:
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `n_polymers` | 3 | Number of distinct polymer species |
+| `min_neighbors` | 2 | Minimum number of neighbours required to compute entropy for a monomer |
+
+**Input files**: VTK trajectory files in `outputDir`, read via `vtkReader`.
+
+**Output file**:
+
+| File | Description |
+|------|-------------|
+| `r<initFrame>_localEntropy_r<radius>.res` | One value per line: the normalised mixing entropy for each monomer that had sufficient neighbours. Written to `outputDir`. |
+
+**Idempotency**: The script checks whether the output file already exists and aborts if it does.
+
+**Usage**:
+
+```bash
+python3 T3mixing_Entropy.py /path/to/output poly0 poly1 poly2 100 1.5
+```
+
+This computes the normalised local mixing entropy at frame 100 using a neighbourhood radius of 1.5 simulation units.
+
+---
 
 ### Step 1 — Alpha-Shape Volume and Particle Counting
 
@@ -593,37 +665,44 @@ The pipeline produces several categories of output:
 
 | Category | File pattern | Description |
 |----------|-------------|-------------|
+| Mixing entropy | `r<frame>_localEntropy_r<radius>.res` | Per-monomer normalised mixing entropy |
 | Alpha-shape volumes | `?volume.tab` | Per-chain volume vs. alpha |
 | Particle intermingling | `?particles_in_?.tab` | Bead counts inside other chains' territories |
 | Contact matrices | `rc_*nm_res_*bead_*.tab` | Raw contact maps |
 | Trans-contact ratios | `*_TR.tab`, `*_TR_perChrom.tab` | Per-bin and per-chromosome TR |
 | Compartment strength | `*_CSHomoOverAll_perChrom.tab` | Per-chromosome CS (when enabled) |
-| Violin plots | `*.pdf` | Publication-ready visualisations |
+| Violin plots | `*.pdf` | Visualisations |
 
 ---
 
 ## Typical Workflow
 
-1. **Compile the C programs**:
+1. **Compute mixing entropy** for a given frame and radius:
+
+   ```bash
+   python3 T3mixing_Entropy.py /path/to/output poly0 poly1 poly2 100 3.0
+   ```
+
+2. **Compile the C programs**:
 
    ```bash
    gcc -O2 -o compute_contact_map_TR compute_contact_map_TR.c -lm
    gcc -O2 -o compute_contact_map_TR_and_CS compute_contact_map_TR_and_CS.c -lm
    ```
 
-2. **Run Step 1** — compute alpha-shape volumes and particle counts:
+3. **Run Step 1** — compute alpha-shape volumes and particle counts:
 
    ```bash
    sbatch 01_compute_ashape3D_volumeNparticles.cmd Topo_Feb2025
    ```
 
-3. **Run Step 2a** — aggregate and plot alpha-shape results:
+4. **Run Step 2a** — aggregate and plot alpha-shape results:
 
    ```bash
    sbatch 02_chain_alphaShape_plots.cmd Topo_Feb2025_intermingled
    ```
 
-4. **Run Step 2b or 3a** — compute contact maps and trans-contact ratios:
+5. **Run Step 2b or 3a** — compute contact maps and trans-contact ratios:
 
    ```bash
    # Per-replica (Step 2b):
@@ -633,13 +712,13 @@ The pipeline produces several categories of output:
    sbatch 03_compute_contact_map_PSMN_TR.cmd Topo_Feb2025
    ```
 
-5. **Run Step 3b** — plot trans-ratio distributions:
+6. **Run Step 3b** — plot trans-ratio distributions:
 
    ```bash
    sbatch 03_make_TR_violinPlots.cmd
    ```
 
-6. **Run Step 4** — plot cis/trans contact count distributions:
+7. **Run Step 4** — plot cis/trans contact count distributions:
 
    ```bash
    sbatch 04_make_cisCounts_violinPlots.cmd
