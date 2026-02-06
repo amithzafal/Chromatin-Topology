@@ -1,7 +1,7 @@
 # Analysis scripts for polymer simulations of chromosome organisation. 
 
 ## Cite 
-###Amith Z. Abdulla, Marco Di Stefano, Cristian Micheletti and Daniel Jost, Topological constraints,
+### Amith Z. Abdulla, Marco Di Stefano, Cristian Micheletti and Daniel Jost, Topological constraints,
 
 This repository contains a collection of scripts for analysing 3D polymer simulation trajectories of chromosome territories. The pipeline quantifies chromosome intermingling through alpha-shape analysis, computes contact maps with trans-contact ratios (TR), and generates violin-plot visualisations. The scripts are designed to run on HPC clusters (SLURM) and follow a numbered, sequential workflow.
 
