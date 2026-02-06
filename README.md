@@ -1,6 +1,6 @@
-# Analysis Scripts for Lattice Polymer Simulations of Chromosome Organisation
+# Analysis scripts for polymer simulations of chromosome organisation, 
 
-This repository contains a collection of scripts for analysing 3D lattice polymer simulation trajectories of chromosome territories. The pipeline quantifies chromosome intermingling through alpha-shape analysis, computes contact maps with trans-contact ratios (TR), and generates publication-ready violin-plot visualisations. The scripts are designed to run on HPC clusters (SLURM) and follow a numbered, sequential workflow.
+This repository contains a collection of scripts for analysing 3D polymer simulation trajectories of chromosome territories. The pipeline quantifies chromosome intermingling through alpha-shape analysis, computes contact maps with trans-contact ratios (TR), and generates violin-plot visualisations. The scripts are designed to run on HPC clusters (SLURM) and follow a numbered, sequential workflow.
 
 ---
 
