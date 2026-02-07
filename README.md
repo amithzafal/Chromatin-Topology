@@ -3,7 +3,8 @@
 ## Cite
 
 Amith Z. Abdulla, Marco Di Stefano, Cristian Micheletti and Daniel Jost, Topological constraints...
-Numerical simulation code availabe https://github.com/physical-biology-of-chromatin/LatticePoly/tree/ExtrusionPoly
+
+For simulation code: https://github.com/physical-biology-of-chromatin/LatticePoly/tree/ExtrusionPoly
 
 This repository contains a collection of scripts for analysing 3D polymer simulation trajectories of chromosome territories. The pipeline quantifies chromosome intermingling through mixing entropy, alpha-shape analysis, computes contact maps with trans-contact ratios (TR), and generates violin-plot visualisations. The scripts are designed to run on HPC clusters (SLURM) and follow a numbered, sequential workflow.
 
