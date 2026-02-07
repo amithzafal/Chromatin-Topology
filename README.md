@@ -15,13 +15,13 @@ This repository contains a collection of scripts for analysing 3D polymer simula
 3. [Input Data Format](#input-data-format)
 4. [Pipeline Overview](#pipeline-overview)
 5. [Script Reference](#script-reference)
-   - [Mixing Entropy — Local Flory-Huggins Mixing Entropy](#mixing-entropy--local-flory-huggins-mixing-entropy)
-   - [Step 1 — Alpha-Shape Volume and Particle Counting](#step-1--alpha-shape-volume-and-particle-counting)
-   - [Step 2a — Alpha-Shape Visualisation](#step-2a--alpha-shape-visualisation)
-   - [Step 2b — Contact Map and Trans-Contact Ratio (Per-Replica)](#step-2b--contact-map-and-trans-contact-ratio-per-replica)
-   - [Step 3a — Contact Map and Trans-Contact Ratio (All Replicas)](#step-3a--contact-map-and-trans-contact-ratio-all-replicas)
-   - [Step 3b — Trans-Ratio Violin Plots](#step-3b--trans-ratio-violin-plots)
-   - [Step 4 — Cis/Trans Contact Count Violin Plots](#step-4--cistrans-contact-count-violin-plots)
+   - [a) Mixing Entropy — Local Flory-Huggins Mixing Entropy](#mixing-entropy--local-flory-huggins-mixing-entropy)
+   - [b) Alpha-Shape Volume and Particle Counting](#step-1--alpha-shape-volume-and-particle-counting)
+   - [c) Alpha-Shape Visualisation](#step-2a--alpha-shape-visualisation)
+   - [d) Contact Map and Trans-Contact Ratio (Per-Replica)](#step-2b--contact-map-and-trans-contact-ratio-per-replica)
+   - [e) Contact Map and Trans-Contact Ratio (All Replicas)](#step-3a--contact-map-and-trans-contact-ratio-all-replicas)
+   - [f) Trans-Ratio Violin Plots](#step-3b--trans-ratio-violin-plots)
+   - [g) Cis/Trans Contact Count Violin Plots](#step-4--cistrans-contact-count-violin-plots)
    - [C Programs — Contact Map Computation Engine](#c-programs--contact-map-computation-engine)
    - [Utility — Knot-State Reader](#utility--knot-state-reader)
 6. [Output Files](#output-files)
@@ -146,7 +146,7 @@ This computes the normalised local mixing entropy at frame 100 using a neighbour
 
 ---
 
-### Step 1 — Alpha-Shape Volume and Particle Counting
+### Alpha-Shape Volume and Particle Counting
 
 #### `01_compute_ashape3D_volumeNparticles.R`
 
@@ -224,7 +224,7 @@ sbatch 01_compute_ashape3D_volumeNparticles.cmd Topo_Feb2025
 
 ---
 
-### Step 2a — Alpha-Shape Visualisation
+### Alpha-Shape Visualisation
 
 #### `02_chain_alphaShape_plots.R`
 
@@ -289,7 +289,7 @@ sbatch 02_chain_alphaShape_plots.cmd Topo_Feb2025_intermingled
 
 ---
 
-### Step 2b — Contact Map and Trans-Contact Ratio (Per-Replica)
+### Contact Map and Trans-Contact Ratio (Per-Replica)
 
 #### `02_compute_contact_map_PSMN_TR.sh`
 
@@ -375,7 +375,7 @@ Note: The simulation condition is currently hardcoded to `TopoNov` in this scrip
 
 ---
 
-### Step 3a — Contact Map and Trans-Contact Ratio (All Replicas)
+### Contact Map and Trans-Contact Ratio (All Replicas)
 
 #### `03_compute_contact_map_PSMN_TR.sh` / `.cmd`
 
@@ -407,7 +407,7 @@ sbatch 03_compute_contact_map_PSMN_TR.cmd Topo_Feb2025
 
 ---
 
-### Step 3b — Trans-Ratio Violin Plots
+### Trans-Ratio Violin Plots
 
 #### `03_make_TR_violinPlots.R`
 
@@ -451,7 +451,7 @@ sbatch 03_make_TR_violinPlots.cmd
 
 ---
 
-### Step 4 — Cis/Trans Contact Count Violin Plots
+### Cis/Trans Contact Count Violin Plots
 
 #### `04_make_cisCounts_violinPlots.R`
 
