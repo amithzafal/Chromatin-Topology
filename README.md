@@ -83,33 +83,12 @@ Plain-text files named `time_<T>_pos.res` (or `.read_data`), each containing **N
 - **`_compartments`** (optional): Two-column file mapping each bead index to a compartment label (0 = telomere, 1 = A, 2 = B). Used only by `compute_contact_map_TR_and_CS`.
 - **`DATA_FILES_INPUT.txt`**: A list of absolute paths to snapshot files to be processed. Created automatically by the shell wrappers.
 
----
-
-## Pipeline Overview
-
-```
-Mixing Entropy
-T3mixing_Entropy.py
-  (normalised Flory-Huggins
-   mixing entropy per monomer)
-
-Step 1                    Step 2a
-01_*.sh/cmd  ──>  01_*.R  ──>  02_chain_alphaShape_plots.cmd  ──>  02_chain_alphaShape_plots.R
-  (extract             (compute        (aggregate results              (violin plots of
-   XYZ per              alpha-shapes     across replicates)              volume & particles)
-   chain)               & volumes)
-
-Step 2b / 3a                           Step 3b                 Step 4
-02/03_compute_contact_map_*.cmd/sh     03_make_TR_violin       04_make_cisCounts/transCounts
-  (compute contact maps via              Plots.cmd/R             _violinPlots.cmd/R
-   C programs, extract TR)              (violin plots of TR)    (violin plots of cis/trans counts)
-```
 
 ---
 
 ## Script Reference
 
-### Mixing Entropy — Local Flory-Huggins Mixing Entropy
+### Mixing Entropy — Flory-Huggins Mixing Entropy
 
 #### `T3mixing_Entropy.py`
 
@@ -218,14 +197,14 @@ This computes the normalised local mixing entropy at frame 100 using a neighbour
 
 | Argument | Position | Description |
 |----------|----------|-------------|
-| Condition name | `$1` | Simulation condition label (e.g. `Topo_Feb2025`). The suffix `_intermingled` is appended automatically. |
+| Condition name | `$1` | 
 
 **Key variables (edit before running)**:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `inputDir` | Path to the raw simulation data | `/home/aabdulla/3D/SingleChain_July2024/.../TopoRate_Vary_Feb2025/` |
-| `workingDir` | Scratch directory for analysis output | `/scratch/Bio/mdistefano/2024_11_13_Analysis_of_Amith_trajectories/` |
+| `inputDir` | Path to the raw simulation data | 
+| `workingDir` | Scratch directory for analysis output | 
 
 **SLURM resources**: 1 core, 15 GB RAM, 4-day time limit, `Lake` partition.
 
@@ -291,7 +270,7 @@ Volumes are normalised by the total confining sphere volume; particle counts are
 
 | Argument | Position | Description |
 |----------|----------|-------------|
-| Condition name | `$1` | Condition directory name to match (e.g. `TopoNov`, `Topo_Feb2025_intermingled`) |
+| Condition name | `$1` | 
 
 **What it does**:
 
@@ -320,8 +299,8 @@ sbatch 02_chain_alphaShape_plots.cmd Topo_Feb2025_intermingled
 
 | Argument | Position | Description |
 |----------|----------|-------------|
-| Simulation directory | `$1` | Name of the simulation condition directory |
-| Replica directory | `$2` | Name of the specific replicate (e.g. `TopoA0001`) |
+| Simulation directory | `$1` | 
+| Replica directory | `$2` | 
 | t_min | `$3` | Start timestep of the analysis window |
 | t_max | `$4` | End timestep of the analysis window |
 
