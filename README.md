@@ -25,7 +25,6 @@ This repository contains a collection of scripts for analysing 3D polymer simula
    - [C Programs — Contact Map Computation Engine](#c-programs--contact-map-computation-engine)
    - [Utility — Knot-State Reader](#utility--knot-state-reader)
 6. [Output Files](#output-files)
-7. [Typical Workflow](#typical-workflow)
 
 ---
 
@@ -654,56 +653,6 @@ The pipeline produces several categories of output:
 
 ---
 
-## Typical Workflow
-
-1. **Compute mixing entropy** for a given frame and radius:
-
-   ```bash
-   python3 T3mixing_Entropy.py /path/to/output poly0 poly1 poly2 100 3.0
-   ```
-
-2. **Compile the C programs**:
-
-   ```bash
-   gcc -O2 -o compute_contact_map_TR compute_contact_map_TR.c -lm
-   gcc -O2 -o compute_contact_map_TR_and_CS compute_contact_map_TR_and_CS.c -lm
-   ```
-
-3. **Run Step 1** — compute alpha-shape volumes and particle counts:
-
-   ```bash
-   sbatch 01_compute_ashape3D_volumeNparticles.cmd Topo_Feb2025
-   ```
-
-4. **Run Step 2a** — aggregate and plot alpha-shape results:
-
-   ```bash
-   sbatch 02_chain_alphaShape_plots.cmd Topo_Feb2025_intermingled
-   ```
-
-5. **Run Step 2b or 3a** — compute contact maps and trans-contact ratios:
-
-   ```bash
-   # Per-replica (Step 2b):
-   sbatch 02_compute_contact_map_PSMN_TR.cmd
-
-   # All replicas pooled at each timestep (Step 3a):
-   sbatch 03_compute_contact_map_PSMN_TR.cmd Topo_Feb2025
-   ```
-
-6. **Run Step 3b** — plot trans-ratio distributions:
-
-   ```bash
-   sbatch 03_make_TR_violinPlots.cmd
-   ```
-
-7. **Run Step 4** — plot cis/trans contact count distributions:
-
-   ```bash
-   sbatch 04_make_cisCounts_violinPlots.cmd
-   ```
-
----
 
 ## Notes
 
